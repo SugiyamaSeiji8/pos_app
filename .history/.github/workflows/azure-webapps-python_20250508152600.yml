@@ -1,0 +1,37 @@
+name: Deploy Python to Azure Web App
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: tech0-gen8-step4-pos-app-60
+  AZURE_WEBAPP_PACKAGE_PATH: ./pos_app_backend
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZUREWEBAPP_PUBLISH_PROFILE_BACKEND }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} 
