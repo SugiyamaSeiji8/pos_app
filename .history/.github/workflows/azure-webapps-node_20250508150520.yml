@@ -1,11 +1,8 @@
-name: Deploy Frontend to Azure Web App
+name: Deploy Node.js to Azure Web App
 
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - 'pos_app_frontend/**'
-      - '.github/workflows/azure-webapps-node.yml'
   workflow_dispatch:
 
 env:
@@ -24,25 +21,33 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/package-lock.json
 
       - name: Install dependencies
-        working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-        run: npm ci
+        run: |
+          cd ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          npm ci
 
       - name: Build
-        working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-        run: npm run build
+        run: |
+          cd ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          npm run build
         env:
           NEXT_PUBLIC_API_URL: https://tech0-gen8-step4-pos-app-60.azurewebsites.net/api
 
       - name: Prepare deployment
-        working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
         run: |
-          cp -r .next/standalone/* .
-          cp -r .next/static .next/
-          cp -r public .
-          rm -rf node_modules
-          zip -r ../deployment.zip ./*
+          cd ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          mkdir deploy
+          cp -r .next/standalone/* deploy/
+          mkdir -p deploy/.next/static
+          cp -r .next/static/* deploy/.next/static/
+          cp -r public deploy/
+          cp start.sh deploy/
+          chmod +x deploy/start.sh
+          cd deploy
+          zip -r ../../deployment.zip ./*
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
@@ -64,7 +69,7 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip deployment.zip -d deploy
+        run: unzip deployment.zip
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -72,4 +77,4 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZUREWEBAPP_PUBLISH_PROFILE }}
-          package: deploy 
+          package: . 
