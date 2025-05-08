@@ -37,7 +37,7 @@ export default function Home() {
   const handleCheckout = async () => {
     try {
       const purchaseItems: PurchaseItem[] = items.map(item => ({
-        prd_id: item.prd_id,
+        prd_id: item.id,
         code: item.code,
         name: item.name,
         price: item.price,
@@ -109,27 +109,27 @@ export default function Home() {
             ) : (
               <>
                 {items.map((item) => (
-                  <div key={item.prd_id} className="mb-4">
+                  <div key={item.id} className="mb-4">
                     <div className="flex justify-between items-center">
                       <span>{item.name}</span>
                       <span>¥{item.price.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center mt-2">
                       <button
-                        onClick={() => updateQuantity(item.prd_id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="px-2 py-1 bg-gray-200 rounded"
                       >
                         -
                       </button>
                       <span className="mx-2">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.prd_id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="px-2 py-1 bg-gray-200 rounded"
                       >
                         +
                       </button>
                       <button
-                        onClick={() => removeItem(item.prd_id)}
+                        onClick={() => removeItem(item.id)}
                         className="ml-2 text-red-500"
                       >
                         削除
